@@ -2,6 +2,7 @@
   <dictionary name="kayukin">
     <words>
       <w>myunixlib</w>
+      <w>readlink</w>
     </words>
   </dictionary>
 </component>

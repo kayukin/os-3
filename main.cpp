@@ -3,11 +3,11 @@
 using namespace std;
 
 string GetCurrentPath() {
-    struct stat RootStat = lstat("/");
+    stat RootStat = lstat("/");
     string ResultPath = "";
     string CurrentPath = ".";
     while (true) {
-        struct stat CurrentStat = lstat(CurrentPath);
+        stat CurrentStat = lstat(CurrentPath);
         if (RootStat == CurrentStat) {
             return ResultPath;
         }
@@ -41,9 +41,12 @@ int CountSymlinks(string OriginalPath) {
             if (!strcmp(Dirent->d_name, ".."))
                 continue;
             string DirentPath = CurrentPath + "/" + Dirent->d_name;
-            if (S_ISLNK(lstat(DirentPath).st_mode) && (OriginalPath == ReadLink(DirentPath))) {
-                Result++;
+            try {
+                if (S_ISLNK(lstat(DirentPath).st_mode) && (OriginalPath == ReadLink(DirentPath))) {
+                    Result++;
+                }
             }
+            catch (ReadlinkException ex) { cerr << ex.GetMessage(); }
         }
         if (lstat(CurrentPath) == lstat("/")) {
             return Result;
@@ -52,7 +55,7 @@ int CountSymlinks(string OriginalPath) {
     }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     string Path = GetCurrentPath();
     cout << "Path: " << Path << endl;
     cout << "Number of symlink's: " << CountSymlinks(Path) << endl;
