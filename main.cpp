@@ -15,9 +15,9 @@ string GetCurrentPath() {
         DIR *Directory = opendir(UpDirectory.c_str());
         dirent *Dirent;
         while ((Dirent = readdir(Directory)) != NULL) {
-            if ((strcmp(Dirent->d_name, ".")) == 0)
+            if (!strcmp(Dirent->d_name, "."))
                 continue;
-            if ((strcmp(Dirent->d_name, "..")) == 0)
+            if (!strcmp(Dirent->d_name, ".."))
                 continue;
             string DirentPath = UpDirectory + "/" + Dirent->d_name;
             if (lstat(DirentPath) == CurrentStat) {
@@ -36,8 +36,10 @@ int CountSymlinks(string OriginalPath) {
         DIR *Directory = opendir(CurrentPath.c_str());
         dirent *Dirent;
         while ((Dirent = readdir(Directory)) != NULL) {
-            if ((strcmp(Dirent->d_name, ".")) == 0) continue;
-            if ((strcmp(Dirent->d_name, "..")) == 0) continue;
+            if (!strcmp(Dirent->d_name, "."))
+                continue;
+            if (!strcmp(Dirent->d_name, ".."))
+                continue;
             string DirentPath = CurrentPath + "/" + Dirent->d_name;
             if (S_ISLNK(lstat(DirentPath).st_mode) && (OriginalPath == ReadLink(DirentPath))) {
                 Result++;
