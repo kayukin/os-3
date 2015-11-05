@@ -6,53 +6,50 @@ string GetCurrentPath() {
     stat RootStat = lstat("/");
     string ResultPath = "";
     string CurrentPath = ".";
-    while (true) {
-        stat CurrentStat = lstat(CurrentPath);
-        if (RootStat == CurrentStat) {
-            return ResultPath;
-        }
+    stat CurrentStat = lstat(CurrentPath);
+    while (RootStat != CurrentStat) {
+        CurrentStat = lstat(CurrentPath);
         string UpDirectory = CurrentPath + "/..";
-        DIR *Directory = opendir(UpDirectory.c_str());
-        dirent *Dirent;
-        while ((Dirent = readdir(Directory)) != NULL) {
-            if (!strcmp(Dirent->d_name, "."))
+        Directory directory(UpDirectory);
+        list<string> dirs = directory.GetDirectoryNames();
+        for (list<string>::iterator i = dirs.begin(); i != dirs.end(); i++) {
+            if (*i == ".")
                 continue;
-            if (!strcmp(Dirent->d_name, ".."))
+            if (*i == "..")
                 continue;
-            string DirentPath = UpDirectory + "/" + Dirent->d_name;
+            string DirentPath = UpDirectory + "/" + *i;
             if (lstat(DirentPath) == CurrentStat) {
-                ResultPath = (string) "/" + Dirent->d_name + ResultPath;
+                ResultPath = (string) "/" + *i + ResultPath;
                 break;
             }
         }
         CurrentPath += "/..";
     }
+    return ResultPath;
 }
 
 int CountSymlinks(string OriginalPath) {
     int Result = 0;
     string CurrentPath = OriginalPath;
-    while (true) {
-        DIR *Directory = opendir(CurrentPath.c_str());
-        dirent *Dirent;
-        while ((Dirent = readdir(Directory)) != NULL) {
-            if (!strcmp(Dirent->d_name, "."))
+    while (lstat(CurrentPath) != lstat("/")) {
+        Directory directory(CurrentPath);
+        list<string> dirs = directory.GetDirectoryNames();
+        for (list<string>::iterator i = dirs.begin(); i != dirs.end(); i++) {
+            if (*i == ".")
                 continue;
-            if (!strcmp(Dirent->d_name, ".."))
+            if (*i == "..")
                 continue;
-            string DirentPath = CurrentPath + "/" + Dirent->d_name;
+            string DirentPath = CurrentPath + "/" + *i;
             try {
-                if (S_ISLNK(lstat(DirentPath).st_mode) && (OriginalPath == ReadLink(DirentPath))) {
+                if (IsLink(DirentPath) && (OriginalPath == ReadLink(DirentPath))) {
                     Result++;
                 }
             }
             catch (ReadlinkException ex) { cerr << ex.GetMessage(); }
         }
-        if (lstat(CurrentPath) == lstat("/")) {
-            return Result;
-        }
         CurrentPath += "/..";
     }
+    return Result;
 }
 
 int main(int argc, char *argv[]) {

@@ -31,3 +31,23 @@ ReadlinkException::ReadlinkException(string msg) {
 string ReadlinkException::GetMessage() {
     return message;
 }
+
+bool IsLink(string string1) {
+    return S_ISLNK(lstat(string1).st_mode);
+}
+
+Directory::Directory(string string1) {
+    dir = opendir(string1.c_str());
+}
+
+list<string> Directory::GetDirectoryNames() const {
+    dirent *dirent;
+    list<string> res;
+    while ((dirent = readdir(dir)) != NULL)
+        res.push_back(dirent->d_name);
+    return res;
+}
+
+bool operator!=(stat FirstStat, stat SecondStat) {
+    return !(FirstStat == SecondStat);
+}
